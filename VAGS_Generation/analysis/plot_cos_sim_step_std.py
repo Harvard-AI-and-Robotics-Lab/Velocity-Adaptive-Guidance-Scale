@@ -1,0 +1,107 @@
+r"""
+Plot avg_cos_sim vs step_index from two CSV files in side-by-side subplots,
+with shaded bands showing the [min_cos_sim, max_cos_sim] error bounds.
+
+Left subplot:  Baseline (blue)
+Right subplot: Proposed (orange)
+
+X-axis: step index
+Y-axis: avg_cos_sim, with min/max as the shaded band
+
+Usage:
+    python analysis/plot_cos_sim_step.py baseline.csv proposed.csv --labels 'Baseline' 'Proposed ($\kappa=1$)' [--out plot.png]
+    python analysis/plot_cos_sim_step_std.py data4paper/step_cos_sim_k0.csv data4paper/step_cos_sim_k1.csv --labels 'Baseline' 'Proposed ($\kappa=1$)' --out data4paper/cos_sim_step_std.svg
+"""
+
+import argparse
+from pathlib import Path
+
+import matplotlib.pyplot as plt
+import pandas as pd
+
+
+REQUIRED_COLS = ["step_index", "min_cos_sim", "max_cos_sim", "avg_cos_sim"]
+
+# Larger fonts across the board for clarity.
+plt.rcParams.update({
+    "font.size": 16,
+    "axes.titlesize": 20,
+    "axes.labelsize": 18,
+    "xtick.labelsize": 14,
+    "ytick.labelsize": 14,
+    "legend.fontsize": 14,
+    "figure.titlesize": 22,
+})
+
+
+def load_and_validate(path: str) -> pd.DataFrame:
+    """Load CSV and validate required columns."""
+    df = pd.read_csv(path)
+    missing = [c for c in REQUIRED_COLS if c not in df.columns]
+    if missing:
+        raise ValueError(f"{path} is missing required columns: {missing}")
+    return df
+
+
+def plot_one(ax, df: pd.DataFrame, label: str, color: str) -> None:
+    x = df["step_index"].values
+    y = df["avg_cos_sim"].values
+    y_lo = df["min_cos_sim"].values
+    y_hi = df["max_cos_sim"].values
+
+    ax.fill_between(x, y_lo, y_hi, alpha=0.25, color=color,
+                    label="min–max range")
+    ax.plot(x, y, color=color, linewidth=2.4, label="avg")
+
+    ax.set_title(label)
+    ax.set_xlabel("Step index")
+    ax.grid(True, alpha=0.3)
+    ax.legend(loc="lower right", framealpha=0.9)
+
+
+def plot_curves(dfs: list[pd.DataFrame], labels: list[str], out_path: Path | None) -> None:
+    # Baseline = cool blue, Proposed = warm orange — colorblind-friendlier than red/blue.
+    colors = ["#1f77b4", "#d62728"]
+
+    fig, axes = plt.subplots(1, 2, figsize=(16, 9), sharey=True)
+
+    for ax, df, label, color in zip(axes, dfs, labels, colors):
+        plot_one(ax, df, label, color)
+
+    # Match x ticks to actual step indices.
+    n_steps = len(dfs[0])
+    for ax in axes:
+        ax.set_xticks(range(0, n_steps, max(1, n_steps // 12)))
+
+    axes[0].set_ylabel("Cosine similarity")
+    # fig.suptitle("Cosine similarity per step (avg with min/max bounds)", y=1.02)
+    fig.tight_layout()
+
+    if out_path is not None:
+        fig.savefig(out_path, dpi=300, bbox_inches="tight")
+        print(f"Saved plot to {out_path}")
+    else:
+        plt.show()
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("csv_files", nargs=2,
+                        help="Two CSV files: baseline first, proposed second")
+    parser.add_argument("--labels", nargs=2, default=["Baseline", "Proposed"],
+                        help="Labels for the two subplots (default: Baseline, Proposed)")
+    parser.add_argument("--out", type=Path, default=None,
+                        help="Output image path. If omitted, the plot is shown interactively.")
+    args = parser.parse_args()
+
+    dfs = [load_and_validate(p) for p in args.csv_files]
+
+    for path, df, label in zip(args.csv_files, dfs, args.labels):
+        print(f"{label} ({path}): {len(df)} steps, "
+              f"avg range [{df['avg_cos_sim'].min():.4f}, {df['avg_cos_sim'].max():.4f}]")
+
+    plot_curves(dfs, args.labels, args.out)
+
+
+if __name__ == "__main__":
+    main()

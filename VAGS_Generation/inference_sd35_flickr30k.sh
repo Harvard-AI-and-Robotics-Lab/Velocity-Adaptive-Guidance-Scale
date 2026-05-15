@@ -1,0 +1,59 @@
+#!/bin/bash
+
+source activate base
+conda activate vags_gen
+
+HUGGINGFACE_TOKEN=''
+BATCH_SIZE=2
+NUM_PROMPTS_PER_RUN=4
+NUM_PROMPTS_PER_RUN=1
+IMAGE_WIDTH=512
+IMAGE_HEIGHT=512
+
+SCHEDULER="flow_euler" #"flowmatch_euler"
+GUIDANCE=( 7 )
+INFERENCE_STEPS=( 25 )
+
+ORG_IMAGE_DIR="/path/to/datasets/flickr30k/test_bestcaption"
+PROMPT_DIR="/path/to/datasets/flickr30k/test_bestcaption"
+BASE_OUTPUT_DIR="generated_images_flickr30k_bestcaption"
+
+MODEL_PATH=(
+            'output_cvpr/flickr30k_pretrained_sd35/'
+            )
+
+
+
+for (( i=0; i<${#GUIDANCE[@]}; i++ ));
+do
+
+    OUTPUT_DIR="${BASE_OUTPUT_DIR}_${SCHEDULER}_step${INFERENCE_STEPS}_g${GUIDANCE[$i]}"
+    GEN_IMG_DIR="${MODEL_PATH}/${OUTPUT_DIR}"
+
+    python inference_sd35.py \
+    --prompt_dir=${PROMPT_DIR} \
+    --model_path=${MODEL_PATH} \
+    --output_dir="${OUTPUT_DIR}" \
+    --batch_size=${BATCH_SIZE} \
+    --num_prompts_per_run=${NUM_PROMPTS_PER_RUN} \
+    --image_width=${IMAGE_WIDTH} \
+    --image_height=${IMAGE_HEIGHT} \
+    --num_inference_steps=${INFERENCE_STEPS} \
+    --guidance_scale=${GUIDANCE[$i]} \
+    --scheduler=${SCHEDULER} \
+    --seed 227
+
+    python evaluate_on_image_generation.py \
+    --prompt_dir=${PROMPT_DIR} \
+    --gt_img_dir=${ORG_IMAGE_DIR} \
+    --gen_img_dir="${GEN_IMG_DIR}"
+
+    python evaluate_with_blip_caption.py \
+    --caption_folder=${PROMPT_DIR} \
+    --image_folder="${GEN_IMG_DIR}"
+
+    python assemble_performance_scores.py \
+    --csv_file="${MODEL_PATH}/${OUTPUT_DIR}_img_quality.txt" \
+    --json_file="${MODEL_PATH}/${OUTPUT_DIR}_caption_results.json" \
+    --output="${MODEL_PATH}/${OUTPUT_DIR}_perf.txt"
+done
