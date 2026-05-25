@@ -9,7 +9,7 @@ $\lambda_i = \lambda \cdot \exp\left(\kappa \cdot (2\sigma_i - 1) \cdot s_i\righ
 <!-- $λ_i = λ · exp( κ · (2σ_i − 1) · s_i )$ -->
 
 
-where $s_i$ is the velocity-alignment signal, $σ_i ∈ [0, 1]$ is the signal level (1 = clean), and `κ ≥ 0` controls modulation strength. Setting `κ = 0` recovers vanilla CFG.
+where $s_i$ is the velocity-alignment signal, $σ_i ∈ [0, 1]$ is the signal level (1 = clean), and $κ ≥ 0$ controls modulation strength. Setting $κ = 0$ recovers vanilla CFG.
 
 ---
 
