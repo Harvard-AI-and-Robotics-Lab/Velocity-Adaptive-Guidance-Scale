@@ -5,7 +5,7 @@ Official implementation of **Velocity-Adaptive Guidance Scale (VAGS)**, a traini
 VAGS replaces the constant CFG scale with a per-step adaptive scale that depends on the diffusion timestep and the cosine similarity between two velocity fields:
 
 ```
-λ<sub>i</sub> = λ · exp( κ · (2σ<sub>i</sub> − 1) · s<sub>i</sub> )
+$λ_i = λ · exp( κ · (2σ<sub>i</sub> − 1) · s<sub>i</sub> )$
 ```
 
 where `s_i` is the velocity-alignment signal, `σ_i ∈ [0, 1]` is the signal level (1 = clean), and `κ ≥ 0` controls modulation strength. Setting `κ = 0` recovers vanilla CFG.
