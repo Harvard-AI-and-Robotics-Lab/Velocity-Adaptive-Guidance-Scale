@@ -5,9 +5,7 @@ Official implementation of **Velocity-Adaptive Guidance Scale (VAGS)**, a traini
 VAGS replaces the constant CFG scale with a per-step adaptive scale that depends on the diffusion timestep and the cosine similarity between two velocity fields:
 
 
-$$
-\lambda_i = \lambda \cdot \exp\left(\kappa \cdot (2\sigma_i - 1) \cdot s_i\right)
-$$
+$\lambda_i = \lambda \cdot \exp\left(\kappa \cdot (2\sigma_i - 1) \cdot s_i\right)$
 $λ_i = λ · exp( κ · (2σ_i − 1) · s_i )$
 
 
