@@ -45,6 +45,19 @@ See the per-subproject READMEs for full setup, dataset preparation, evaluation, 
 
 ---
 
+### Citation
+
+If you find this work useful, please cite:
+
+```bibtex
+@article{luo2026vags,
+  title={VAGS: Velocity Adaptive Guidance Scale for Image Editing and Generation},
+  author={Luo, Yan and Aidara, Ahmadou and Lu, Jingyi and Moebel, Jeremy and Han, Kai and Wang, Mengyu},
+  journal={arXiv preprint arXiv:2605.15661},
+  year={2026}
+}
+```
+
 <!-- ## Citation
 
 ```bibtex
